@@ -279,3 +279,13 @@ if symbol:
                             st.warning("⚠️ الحسابات غير منطقية. تأكد من أن السعر المستهدف يقع بين السعر الحالي وسعر الشراء الجديد.")
         else:
             st.error("لم يتم العثور على بيانات لهذا السهم. تأكد من صحة الرمز.")
+<tr style="border-bottom: 2px solid rgba(184, 115, 51, 0.4); background-color: rgba(142, 68, 173, 0.15);">
+    <td style="padding: 12px; font-weight: bold; color: #6D214F;">حالة نمو الإيرادات (3 سنوات)</td>
+    <td style="padding: 12px; text-align: center; font-weight: bold;">{rev_g1}</td>
+    <td style="padding: 12px; text-align: center; font-weight: bold;">{rev_g2}</td>
+</tr>
+<tr style="background-color: rgba(142, 68, 173, 0.15);">
+    <td style="padding: 12px; font-weight: bold; color: #6D214F;">حالة نمو صافي الدخل (3 سنوات)</td>
+    <td style="padding: 12px; text-align: center; font-weight: bold;">{net_g1}</td>
+    <td style="padding: 12px; text-align: center; font-weight: bold;">{net_g2}</td>
+</tr>
