@@ -155,7 +155,124 @@ if symbol:
                         st.error("عذراً، السعر المستهدف لا يمكن أن يساوي سعر الشراء الجديد.")
                     else:
                         required_shares = numerator / denominator
-                        if required_shares > 0:
+                        if required_shares > 0:# التبويب الرابع: مقارنة الأسهم
+            with tab4:
+                st.write("### ⚖️ مقارنة مالية متقدمة بين سهمين")
+                st.info("أدخل رمز السهم الثاني لمقارنته بالسهم الحالي الحركي.")
+                
+                symbol2 = st.text_input("أدخل رمز السهم الثاني (مثال: 1120):", "1120")
+                
+                if symbol2:
+                    saudi_symbol2 = f"{symbol2}.SR"
+                    
+                    with st.spinner('جاري جلب بيانات السهم الثاني والمقارنة...'):
+                        stock2 = yf.Ticker(saudi_symbol2)
+                        info2 = stock2.info
+                        
+                        if info2.get('currentPrice'):
+                            # دالة ذكية لحساب حالة النمو لآخر 3 سنوات
+                            def calculate_3yr_growth(stock_obj):
+                                try:
+                                    fin = stock_obj.financials
+                                    # جلب آخر 3 سنوات وترتيبها من الأقدم للأحدث
+                                    rev_years = fin.loc['Total Revenue'].iloc[:3][::-1]
+                                    net_years = fin.loc['Net Income'].iloc[:3][::-1]
+                                    
+                                    # تحديد حالة الإيرادات
+                                    if rev_years.iloc[-1] > rev_years.iloc[0] * 1.05:
+                                        rev_status = "نمو مستمر 📈"
+                                    elif rev_years.iloc[-1] < rev_years.iloc[0] * 0.95:
+                                        rev_status = "تراجع 📉"
+                                    else:
+                                        rev_status = "استقرار ⚖️"
+                                        
+                                    # تحديد حالة صافي الدخل
+                                    if net_years.iloc[-1] > net_years.iloc[0] * 1.05:
+                                        net_status = "نمو مستمر 📈"
+                                    elif net_years.iloc[-1] < net_years.iloc[0] * 0.95:
+                                        net_status = "تراجع 📉"
+                                    else:
+                                        net_status = "استقرار ⚖️"
+                                        
+                                    return rev_status, net_status
+                                except:
+                                    return "غير متوفر", "غير متوفر"
+                            
+                            # حساب النمو للسهمين
+                            rev_g1, net_g1 = calculate_3yr_growth(stock)
+                            rev_g2, net_g2 = calculate_3yr_growth(stock2)
+                            
+                            # حساب مضاعف القيمة الدفترية (P/B) والعائد على الحقوق (ROE)
+                            pb1 = info.get('priceToBook', 'N/A')
+                            pb2 = info2.get('priceToBook', 'N/A')
+                            
+                            roe1 = info.get('returnOnEquity', 0)
+                            roe2 = info2.get('returnOnEquity', 0)
+                            roe1_str = f"{roe1 * 100:.2f}%" if roe1 else "N/A"
+                            roe2_str = f"{roe2 * 100:.2f}%" if roe2 else "N/A"
+                            
+                            div1 = info.get('dividendYield', 0)
+                            div2 = info2.get('dividendYield', 0)
+                            div1_str = f"{div1 * 100:.2f}%" if div1 else "0.00%"
+                            div2_str = f"{div2 * 100:.2f}%" if div2 else "0.00%"
+
+                            # بناء جدول مقارنة مخصص باستخدام HTML وتنسيق الموقع اللؤلؤي
+                            comparison_html = f"""
+                            <table style="width:100%; border-collapse: collapse; background-color: #FDFBF7; border-radius: 15px; box-shadow: 4px 4px 12px #e3e1dd; overflow: hidden; color: #5C4033;">
+                                <tr style="background-color: #5C4033; color: #FDFBF7; text-align: center;">
+                                    <th style="padding: 12px;">المؤشر المالي</th>
+                                    <th style="padding: 12px;">السهم الأول ({symbol})</th>
+                                    <th style="padding: 12px;">السهم الثاني ({symbol2})</th>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2);">
+                                    <td style="padding: 12px; font-weight: bold;">السعر الحالي</td>
+                                    <td style="padding: 12px; text-align: center;">{info.get('currentPrice', 'N/A')} ريال</td>
+                                    <td style="padding: 12px; text-align: center;">{info2.get('currentPrice', 'N/A')} ريال</td>
+                                tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2);">
+                                    <td style="padding: 12px; font-weight: bold;">مكرر الربحية (P/E)</td>
+                                    <td style="padding: 12px; text-align: center;">{info.get('trailingPE', 'N/A')}</td>
+                                    <td style="padding: 12px; text-align: center;">{info2.get('trailingPE', 'N/A')}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2);">
+                                    <td style="padding: 12px; font-weight: bold;">ربحية السهم (EPS)</td>
+                                    <td style="padding: 12px; text-align: center;">{info.get('trailingEps', 'N/A')} ريال</td>
+                                    <td style="padding: 12px; text-align: center;">{info2.get('trailingEps', 'N/A')} ريال</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2);">
+                                    <td style="padding: 12px; font-weight: bold;">القيمة الدفترية للسهم</td>
+                                    <td style="padding: 12px; text-align: center;">{info.get('bookValue', 'N/A')} ريال</td>
+                                    <td style="padding: 12px; text-align: center;">{info2.get('bookValue', 'N/A')} ريال</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2);">
+                                    <td style="padding: 12px; font-weight: bold;">مضاعف القيمة الدفترية (P/B)</td>
+                                    <td style="padding: 12px; text-align: center;">{pb1}</td>
+                                    <td style="padding: 12px; text-align: center;">{pb2}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2);">
+                                    <td style="padding: 12px; font-weight: bold;">متوسط العائد على الحقوق (ROE)</td>
+                                    <td style="padding: 12px; text-align: center;">{roe1_str}</td>
+                                    <td style="padding: 12px; text-align: center;">{roe2_str}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2);">
+                                    <td style="padding: 12px; font-weight: bold;">عائد التوزيع النقدي</td>
+                                    <td style="padding: 12px; text-align: center;">{div1_str}</td>
+                                    <td style="padding: 12px; text-align: center;">{div2_str}</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(184, 115, 51, 0.2); background-color: rgba(142, 68, 173, 0.03);">
+                                    <td style="padding: 12px; font-weight: bold; color: #8E44AD;">حالة نمو الإيرادات (3 سنوات)</td>
+                                    <td style="padding: 12px; text-align: center;">{rev_g1}</td>
+                                    <td style="padding: 12px; text-align: center;">{rev_g2}</td>
+                                </tr>
+                                <tr style="background-color: rgba(142, 68, 173, 0.03);">
+                                    <td style="padding: 12px; font-weight: bold; color: #8E44AD;">حالة نمو صافي الدخل (3 سنوات)</td>
+                                    <td style="padding: 12px; text-align: center;">{net_g1}</td>
+                                    <td style="padding: 12px; text-align: center;">{net_g2}</td>
+                                </tr>
+                            </table>
+                            """
+                            st.markdown(comparison_html, unsafe_allow_html=True)
+                        else:
+                            st.error("لم يتم العثور على بيانات للسهم الثاني. تأكد من صحة الرمز.")
                             total_cost = required_shares * new_price
                             st.success(f"🎯 **النتيجة:** يجب عليك شراء **{int(required_shares)}** سهم إضافي على سعر {new_price} ريال.")
                         else:
